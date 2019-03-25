@@ -1,0 +1,10 @@
+@font-face {
+  font-family: RobotoBold;
+  src: url('fonts/Roboto-Bold/Roboto-Bold.eot');
+  src: local(""), url('fonts/Roboto-Bold/Roboto-Bold.woff') format('woff'), url('fonts/Roboto-Bold/Roboto-Bold.ttf') format('truetype');
+}
+@font-face {
+  font-family: RobotoBlack;
+  src: url('fonts/Roboto-Black/Roboto-Black.eot');
+  src: local(""), url('fonts/Roboto-Black/Roboto-Black.woff') format('woff'), url('fonts/Roboto-Black/Roboto-Black.ttf') format('truetype');
+}
