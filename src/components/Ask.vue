@@ -1,5 +1,5 @@
 <template>
-  <section class="section text-center bg-gray">
+  <section class="section text-center">
     <div class="container">
       <h3>У вас есть вопрос? <br/>
         Наши специалисты будет рады проконсультировать вас в онлайн чате.</h3>
