@@ -4,7 +4,11 @@
     <div class="content-app pt0">
       <div class="top-bg">
         <div class="container">
-          <breadcrumbs :link="link"></breadcrumbs>
+          <breadcrumbs :link="link"
+                       :subLink="brandName"
+                       :subLinkModel="modelName"
+                       :subLinkYear="yearName"
+                       :subLinkEngine="engineName"></breadcrumbs>
           <div class="section-ttl left">Чип Тюнинг</div>
           <div class="filter">
             <div class="select">Выбрать марку</div>
@@ -16,7 +20,7 @@
       </div>
       <div class="container">
         <div class="tuning-container">
-          <div class="grid-tuning" v-if="brandSelect">
+          <div class="grid-tuning" v-if="!brandSelect">
             <div class="item"
                  v-for="item in brand"
                  :key="item.id"
@@ -24,7 +28,7 @@
               <img :src="item.logo" :alt="item.title">
             </div>
           </div>
-          <div class="grid-wrap" v-if="brandSelect">
+          <div class="grid-wrap" v-if="brandSelect && !modelSelect">
             <h2>Выберите свою модель</h2>
             <div class="grid-tuning model">
               <div class="item"
@@ -35,26 +39,28 @@
               </div>
             </div>
           </div>
-          <div class="grid-wrap" v-if="brandSelect">
+          <div class="grid-wrap" v-if="modelSelect && !yearSelect">
             <h2>Год</h2>
             <div class="grid-tuning model">
-              <div class="item">
+              <div class="item"
+                   v-for="item in year"
+                   :key="item.id" @click="selectYear(item.id)">
                 Все
               </div>
             </div>
           </div>
-          <div class="grid-wrap" v-if="brandSelect">
+          <div class="grid-wrap" v-if="yearSelect && !engineSelect">
             <h2>Выберите тип двигателя</h2>
             <div class="grid-tuning model">
               <div class="item"
                    v-for="item in engine"
                    :key="item.id"
-                   @click="selectModel(item.id)">
+                   @click="selectEngine(item.id)">
                 {{ item.name }}
               </div>
             </div>
           </div>
-          <div class="tuning-wrapper" v-if="!brandSelect">
+          <div class="tuning-wrapper" v-if="engineSelect">
             <div class="content">
               <div class="tuning-stage">
                 <div class="ttl">Стадия тюнинга:</div>
@@ -76,24 +82,43 @@
                 <div class="row">
                   <div class="ttl">Мощность</div>
                   <div class="item-wrap">
-                    <div class="item"><div class="text">Оригинал</div>555 лс</div>
-                    <div class="item"><div class="text">Тюнинг</div>333 лс</div>
-                    <div class="item active"><div class="text">Разница</div>222 лс</div>
+                    <div class="item">
+                      <div class="text">Оригинал</div>
+                      555 лс
+                    </div>
+                    <div class="item">
+                      <div class="text">Тюнинг</div>
+                      333 лс
+                    </div>
+                    <div class="item active">
+                      <div class="text">Разница</div>
+                      222 лс
+                    </div>
                   </div>
                 </div>
                 <div class="row">
                   <div class="ttl">Момент</div>
                   <div class="item-wrap">
-                    <div class="item"><div class="text">Оригинал</div>555 нм</div>
-                    <div class="item"><div class="text">Тюнинг</div>333 нм</div>
-                    <div class="item active"><div class="text">Разница</div>222 нм</div>
+                    <div class="item">
+                      <div class="text">Оригинал</div>
+                      555 нм
+                    </div>
+                    <div class="item">
+                      <div class="text">Тюнинг</div>
+                      333 нм
+                    </div>
+                    <div class="item active">
+                      <div class="text">Разница</div>
+                      222 нм
+                    </div>
                   </div>
                 </div>
               </div>
 
               <div class="tuning-options">
                 <div class="tuning-options-btn"
-                    @click="showOptions = !showOptions">Допорлнительные опции +</div>
+                     @click="showOptions = !showOptions">Допорлнительные опции +
+                </div>
               </div>
 
               <div class="total-wrap">
@@ -140,12 +165,12 @@
                 </div>
                 <div class="tuning-text">
                   <h4>Описание:</h4>
-                  <p>Lorem Ipsum является стандартной "рыбой" для текстов на латинице с начала XVI века. В то время некий
+                  <p>Lorem Ipsum является стандартной "рыбой" для текстов на латинице с начала XVI века. В то время
+                    некий
                     безымянный печатник создал большую коллекцию размеров и форм шрифтов, используя Lorem Ipsum для
                     распечатки образцов.</p>
                 </div>
               </div>
-
             </div>
             <aside>
               <div class="tuning-logo">
@@ -166,7 +191,6 @@
                   админке
                 </div>
               </div>
-
             </aside>
           </div>
         </div>
@@ -186,14 +210,42 @@
       return {
         link: 'Чип Тюнинг',
         brandSelect: false,
-        showOptions: false
+        modelSelect: false,
+        yearSelect: false,
+        engineSelect: false,
+        carDetails: false,
+        showOptions: false,
+        brandName: '',
+        modelName: '',
+        yearName: '',
+        engineName: ''
       }
     },
     methods: {
       selectBrand(id) {
-        console.log(id);
         if (id) {
           this.brandSelect = true;
+          this.brandName = this.$store.getters.brandById(id).title;
+          console.log(this.brandName);
+        }
+      },
+      selectModel(id) {
+        if (id) {
+          this.modelSelect = true;
+          this.modelName = this.$store.getters.modelById(id).name;
+          // this.brandSelect = false;
+        }
+      },
+      selectYear(id) {
+        if (id) {
+          this.yearSelect = true;
+          this.yearName = this.$store.getters.yearById(id).name;
+        }
+      },
+      selectEngine(id) {
+        if (id) {
+          this.engineSelect = true;
+          this.engineName = this.$store.getters.engineById(id).name;
         }
       }
     },
@@ -208,8 +260,16 @@
       model() {
         return this.$store.getters.model;
       },
+      year() {
+        return this.$store.getters.year;
+      },
       engine() {
         return this.$store.getters.engine;
+      },
+      brandId() {
+        const id = this.id
+        console.log(id)
+        return this.$store.getters.adById(id)
       }
     }
   }
