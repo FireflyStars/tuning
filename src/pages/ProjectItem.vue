@@ -3,13 +3,16 @@
     <app-header></app-header>
     <div class="content-app">
       <div class="container">
-        <breadcrumbs :link="link" :subLink="project.title"></breadcrumbs>
-        <pre class="section-ttl left">{{ project.title }}</pre>
+        <breadcrumbs :link="link" :subLink="project.name"></breadcrumbs>
+        <pre class="section-ttl left">{{ project.name }}</pre>
         <div class="text-wrap">
           <div class="img-wrap">
-            <img :src="project.imageSrc" :alt="project.title">
+            <img :src="project.image" :alt="project.name" v-if="!project.type"  style="width:100%">
+            <video class="tuning-video" style="width: 100%" controls="controls" v-if="project.type">
+              <source :src="project.image" type='video/mp4; codecs="avc1.42E01E, mp4a.40.2"'>
+            </video>       
           </div>
-          <p>{{ project.descr }}</p>
+          <div v-html="project.description"></div>
         </div>
       </div>
     </div>
@@ -23,24 +26,37 @@
   import Breadcrumbs from '@/components/Breadcrumbs'
   import Ask from '@/components/Ask'
   import News from '@/components/News'
+  import axios from 'axios'
 
   export default {
     props: ['id'],
     computed: {
-      project () {
-        const id = this.id
-        return this.$store.getters.projectById(id)
-      }
     },
     data() {
       return {
-        link: 'Проекты'
+        link: 'Проекты',
+        project: {
+                id: '1',
+                type:0,
+                image: '',
+                name: 'Проект',
+                description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam varius ornare pretium. Cras velsapien et purus efficitur interdu'
+              },          
       }
     },
     components: {
       Breadcrumbs,
       Ask
-    }
+    },
+    beforeCreate(){
+      const app = this;
+      let baseUrl = window.location.protocol+"//"+window.location.host+"/";
+      axios.get(baseUrl + 'api/project').then(function(response){
+        app.project =  response.data.find(item=>item.id == app.id);
+      }).catch(function(errors){
+        console.log(errors);
+      })      
+  }      
   }
 </script>
 

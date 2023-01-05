@@ -4,13 +4,16 @@
     <div class="content-app">
       <div class="container">
         <breadcrumbs :link="link"
-                     :subLink="news.title"></breadcrumbs>
-        <pre class="section-ttl left">{{ news.title }}</pre>
+                     :subLink="news.name"></breadcrumbs>
+        <pre class="section-ttl left">{{ news.name }}</pre>
         <div class="text-wrap">
           <div class="img-wrap">
-            <img :src="news.imageSrc" :alt="news.title">
+            <img :src="news.image" :alt="news.name" v-if="!news.type"  style="width: 100%">
+            <video class="tuning-video"  style="width: 100%" controls="controls" v-if="news.type">
+              <source :src="news.image" type='video/mp4; codecs="avc1.42E01E, mp4a.40.2"'>
+            </video>                 
           </div>
-          <p>{{ news.descr }}</p>
+          <div v-html="news.description"></div>
         </div>
       </div>
     </div>
@@ -24,24 +27,35 @@
   import Breadcrumbs from '@/components/Breadcrumbs'
   import Ask from '@/components/Ask'
   import News from '@/components/News'
+  import axios from 'axios'
 
   export default {
     props: ['id'],
-    computed: {
-      news () {
-        const id = this.id
-        return this.$store.getters.newsById(id)
-      }
-    },
     data() {
       return {
-        link: 'Новости'
+        link: 'Новости',
+        news: {
+              id: 1,
+              type:0,
+              image: '',
+              name: 'Новости1',
+              description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam varius ornare pretium. Cras velsapien et purus efficitur interdu'
+            },
       }
     },
     components: {
       Breadcrumbs,
       Ask
-    }
+    },
+    beforeCreate(){
+      const app = this;
+      let baseUrl = window.location.protocol+"//"+window.location.host+"/";
+      axios.get( baseUrl + 'api/news').then(function(response){
+       app.news =  response.data.find(item=>item.id == app.id);
+      }).catch(function(errors){
+        console.log(errors);
+      })      
+  }      
   }
 </script>
 

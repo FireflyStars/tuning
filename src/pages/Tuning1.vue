@@ -2,31 +2,82 @@
   <div>
     <app-header></app-header>
     <div class="content-app pt0">
+      <div class="top-bg">
+        <div class="container">
+          <breadcrumbs :link="link"
+                       :subLink="brandName"
+                       :subLinkModel="modelName"
+                       :subLinkYear="yearName"
+                       :subLinkEngine="engineName"></breadcrumbs>
+          <div class="section-ttl left">Чип Тюнинг</div>
+          <div class="filter">
+            <select class="select" v-model="searchBrand"  list="brands" @change="selectBrandByName(searchBrand)">
+              <option selected disabled>Выбрать марку</option>
+              <option>All</option>
+              <option v-for="item in brand" :key="item.id">{{ item.title }}</option>
+            </select>
+            <select class="select" v-model="searchModel"  list="models" @change="selectModelByName(searchModel)">
+              <option selected disabled>Модель</option>
+              <option v-for="item in model" :key="item.id">{{ item.name }}</option>
+            </select>
+            <select class="select" v-model="searchYear"  list="years" @change="selectYearByName(searchYear)">
+              <option selected disabled>Год</option>
+              <option v-for="item in year" :key="item.id">{{ item.name }}</option>
+            </select>
+            <select class="select" v-model="searchEngine"  list="motors" @change="selectEngineByName(searchEngine)">
+              <option selected disabled>Мотор</option>
+              <option v-for="item in engine" :key="item.id">{{ item.name }}</option>
+            </select>                                    
+          </div>
+        </div>
+      </div>
       <div class="container">
         <div class="tuning-container">
-          <ul class="breadcrumbs">
-            <li><router-link to="/">Главная</router-link></li>
-            <li v-if="brandName">
-              <span>{{ brandName }}</span>
-            </li>
-            <li v-if="modelName">
-              <span>{{modelName}}</span>
-            </li>
-            <li v-if="yearName">
-              <span>{{yearName}}</span>
-            </li>
-            <li v-if="engineName">
-              <span>{{engineName}}</span>
-            </li>
-          </ul>
+          <div class="grid-tuning" v-if="!brandSelect">
+            <div class="item"
+                 v-for="item in brand"
+                 :key="item.id"
+                 @click="selectBrand(item.id)">
+              <img :src="item.logo" :alt="item.title" style="cursor:pointer">
+            </div>
+          </div>
+          <div class="grid-wrap" v-if="brandSelect && !modelSelect">
+            <h2>Выберите свою модель</h2>
+            <div class="grid-tuning model">
+              <div class="item"
+                   v-for="item in model"
+                   :key="item.id"
+                   @click="selectModel(item.id)">
+                {{ item.name }}
+              </div>
+            </div>
+          </div>
+          <div class="grid-wrap" v-if="modelSelect && !yearSelect">
+            <h2>Год</h2>
+            <div class="grid-tuning model">
+              <div class="item"
+                   v-for="item in year"
+                   :key="item.id" @click="selectYear(item.id)">
+                   {{ item.name }}
+              </div>
+            </div>
+          </div>
+          <div class="grid-wrap" v-if="yearSelect && !engineSelect">
+            <h2>Выберите тип двигателя</h2>
+            <div class="grid-tuning model">
+              <div class="item"
+                   v-for="item in engine"
+                   :key="item.id"
+                   @click="selectEngine(item.id)">
+                {{ item.name }}
+              </div>
+            </div>
+          </div>
           <div class="tuning-wrapper" v-if="engineSelect && isExist">
             <div class="content">
               <div class="tuning-stage">
-                <div class="ttl">{{ brandName }}&nbsp;{{ modelName }}&nbsp;{{ yearName }}&nbsp;{{ engineName }}</div>
-              </div>
-              <div class="tuning-stage">
                 <div class="ttl">Стадия тюнинга:</div>
-                  <div class="btn transform" style="cursor:pointer" v-for="item in stage" :key="item.stage" :class="{active: (item.stage == selectedStage.stage)}" @click="selectStage(item.id)"><span @click="selectStage(item.id)">Stage {{ item.stage }}</span></div>
+                  <div class="btn" style="cursor:pointer" v-for="item in stage" :key="item.stage" :class="{active: (item.stage == selectedStage.stage)}"><span @click="selectStage(item.id)">Stage {{ item.stage }}</span></div>
               </div>
               <div class="tuning-table">
                 <div class="row row-first">
@@ -70,29 +121,57 @@
                       {{ selectedStage.moment - car.moment }} нм
                     </div>
                   </div>
-                </div>               
-              </div>
-              <div class="table-wrap1">
-                <div class="ttl" style="font-weight:700;">Спецификации мотора:</div>
-                <div class="table">
-                  <div class="tbody">
-                    <div class="tr" v-for="(item, index) in engineSpec" :key="index">
-                      <div class="td" v-html="item.name">Снятие ограничения скорости</div>
-                      <div class="td" v-html="item.value">Бесплатно</div>
-                    </div>
-                  </div>
                 </div>
-              </div>              
+              </div>
+
               <div class="tuning-options">
                 <div class="tuning-options-btn"
                      @click="showOptions = !showOptions">Дополнительные опции
                 </div>
+              </div>
+
+              <div class="total-wrap">
+                <div class="tuning-total">
+                  Стоимость: {{ totalPrice }} ₽
+                </div>
+                <div class="btn bigBtn">
+                  <span @click="show" style="cursor:pointer">Заказать</span>
+                </div>
+                <nav class="mainMenu" v-if="isOrder">
+                  <div class="order-modal" :class="isOrder ? 'show' : ''">
+                    <span class="order-modal-close" @click="modalClose">&times;</span>
+                    <div class="order-modal-content">
+                      <div class="modal-item">
+                        <label for="name">НАЗВАНИЕ:&nbsp;</label>
+                        <input type="text" id="name" name="name" :class="isName ? 'invalid': ''" v-model="customerName" />
+                      </div>
+                      <div class="modal-item">
+                        <label for="phone">ТЕЛЕФОН: </label>
+                        <input type="text" id="phone" name="phone" :class="isPhone ? 'invalid': ''" v-model="customerPhone" />
+                      </div>
+                      <div class="modal-item">
+                        <label for="name">ПОЧТА: </label>
+                        <input type="email" id="email" name="email" :class="isEmail ? 'invalid': ''" v-model="customerEmail" />
+                      </div>
+                      <div class="modal-item">
+                        <label for="name" class="message">СООБЩЕНИЕ: </label>
+                        <textarea type="text" id="message" name="message" :class="isMessage ? 'invalid': ''" rows="8" v-model="customerMessage">
+                        </textarea>
+                      </div>  
+                      <div class="modal-item">
+                          <div class="btn text-center" @click="cancel">Отменить</div>
+                          <div class="btn text-center" @click="orderTo">Отправить</div>
+                      </div>                                                                              
+                    </div>
+                  </div>             
+                </nav>   
               </div>
               <div class="table-wrap" v-if="showOptions">
                 <div class="table">
                   <div class="thead">
                     <div class="tr">
                       <div class="td">Название опции</div>
+                      <div class="td">Описание опции</div>
                       <div class="td">Цена</div>
                       <div class="td"></div>
                     </div>
@@ -100,6 +179,7 @@
                   <div class="tbody">
                     <div class="tr" v-for="(item, index) in extraService" :key="item.id">
                       <div class="td" v-html="item.name">Снятие ограничения скорости</div>
+                      <div class="td" v-html="item.description">Снятие ограничения скорости</div>
                       <div class="td" v-html="item.price">Бесплатно</div>
                       <div class="td">
                         <div class="checkbox_wrap">
@@ -114,12 +194,7 @@
                   </div>
                 </div>
               </div>
-              <div class="total-wrap" style="border-top: 1px solid #ababab;">
-                <div class="tuning-total">
-                    Стоимость: {{ totalPrice }} ₽
-                </div>
-              </div>
-              <div class="tuning-info" style="border-top: 0">
+              <div class="tuning-info">
                 <div class="tuning-video">
                   <img :src="car.image" alt="" v-if="!car.type">
                   <video controls="controls" v-if="car.type">
@@ -139,12 +214,12 @@
               <div class="tuning-logo">
                 <img :src="logoSrc" alt="">
               </div>
-              <!-- <div class="aside-text">
+              <div class="aside-text">
                 <ul class="tuning-list">
                   <li>Спецификация мотора:</li>
                   <li v-for="(item, index) in engineSpec" :key="index">{{item.name}} : {{ item.value }}</li>
                 </ul>
-              </div> -->
+              </div>
             </aside>
           </div>
           <div class="tuning-wrapper" v-if="engineSelect && !isExist">
@@ -161,17 +236,19 @@
 </template>
 
 <script>
+  import Breadcrumbs from '@/components/Breadcrumbs'
   import AskTuning from '@/components/Ask-tuning'
-  import axios from 'axios';
+  import axios from 'axios'
 
   export default {
-    props: ['engineid'],
-    components: {
-      AskTuning,
-    },
     data() {
       return {
-        engineSelect: true,
+        link: 'Чип Тюнинг',
+        brandSelect: false,
+        modelSelect: false,
+        yearSelect: false,
+        engineSelect: false,
+        carDetails: false,
         showOptions: false,
         brandId: 0,
         modelId: 0,
@@ -183,8 +260,7 @@
         engineName: '',
         model: [],
         year: [],
-        engineGas: [],
-        engineDisel: [],
+        engine: [],
         car: null,
         engineSpec: null,
         extraService: [],
@@ -194,73 +270,22 @@
         totalExtraPrice: 0,
         selectedStage: null,
         logoSrc: '',
+        searchBrand: 'Выбрать марку',
+        searchModel: 'Модель',
+        searchYear: 'Год',
+        searchEngine: 'Мотор',
+        isOrder: false,
+        customerName: '',
+        customerPhone: '',
+        customerEmail: '',
+        customerMessage: '',
+        isName: false,
+        isPhone: false,
+        isEmail: false,
+        isMessage: false,        
       }
     },
     methods: {
-      selectCar(){
-          this.formatVariable();                  
-          this.isCar = true;
-          this.isBike = false;
-          this.isShip = false;
-          this.brandDestroy();
-          const app = this;
-          axios.get('api/chip/1').then(function(response){
-            app.$store.commit('formatBrand');
-            app.$store.commit('createBrand', response.data.brand);
-            app.$store.commit('formatModel');
-            app.$store.commit('createModel', response.data.model);        
-            app.$store.commit('formatYear');
-            app.$store.commit('createYear', response.data.year);
-            app.$store.commit('formatEngine');
-            app.$store.commit('createEngine', response.data.motor);                
-        })
-      },
-      selectBike(){
-          this.formatVariable();                  
-          this.isBike = true;
-          this.isCar = false;
-          this.isShip = false;
-          this.brandDestroy();
-          const app = this;
-          axios.get('api/chip/2').then(function(response){
-            app.$store.commit('formatBrand');
-            app.$store.commit('createBrand', response.data.brand);
-            app.$store.commit('formatModel');
-            app.$store.commit('createModel', response.data.model);        
-            app.$store.commit('formatYear');
-            app.$store.commit('createYear', response.data.year);
-            app.$store.commit('formatEngine');
-            app.$store.commit('createEngine', response.data.motor);                
-        })
-      },
-      selectShip(){                      
-          this.formatVariable();                  
-          this.isBike = false;
-          this.isCar = false;
-          this.isShip = true;
-          this.brandDestroy();
-          const app = this;
-          axios.get('api/chip/3').then(function(response){
-            app.$store.commit('formatBrand');
-            app.$store.commit('createBrand', response.data.brand);
-            app.$store.commit('formatModel');
-            app.$store.commit('createModel', response.data.model);        
-            app.$store.commit('formatYear');
-            app.$store.commit('createYear', response.data.year);
-            app.$store.commit('formatEngine');
-            app.$store.commit('createEngine', response.data.motor);                
-        })
-      },        
-      formatVariable(){
-          this.searchBrand= 'Выбрать марку';
-          this.searchModel= 'Модель';
-          this.searchYear= 'Год';
-          this.searchEngine= 'Мотор';   
-          this.model = [];
-          this.year = [];
-          this.engineGas = [];
-          this.engineDisel = [];   
-      },
       show(){
         this.isOrder = true;
         let body = document.querySelector('body');
@@ -358,12 +383,7 @@
       },
       selectBrand(id) {
         if (id) {
-          this.model = [];
-          this.year = [];
-          this.engineGas = [];
-          this.engineDisel = [];          
           this.brandSelect = true;
-          this.modelDestroy();
           this.brandId = id;
           this.brandName = this.$store.getters.brandById(id).title;
           this.logoSrc = this.$store.getters.brandById(id).logo;
@@ -375,13 +395,10 @@
       },
       selectModel(id) {
         if (id) {
-          this.year = [];
-          this.engineGas = [];
-          this.engineDisel = [];              
           this.modelSelect = true;
-          this.yearDestroy();
           this.modelId = id;
           this.modelName = this.$store.getters.modelById(id).name;
+          // this.brandSelect = false;
           this.year = this.$store.getters.year;
           this.year = this.year.filter(function(item){
             return item.model_id == id;
@@ -391,23 +408,14 @@
       },
       selectYear(id) {
         if (id) {
-          this.engineGas = [];
-          this.engineDisel = [];             
           this.yearId = id;
           this.yearSelect = true;
-          this.engineDestroy();
           this.yearName = this.$store.getters.yearById(id).name;
           const app = this;
-          let engine = this.$store.getters.engine;
-          engine = engine.filter(function(item){
+          this.engine = this.$store.getters.engine;
+          this.engine = this.engine.filter(function(item){
             return item.year_id == id;
-          });
-          this.engineGas = engine.filter(function(item){
-            return item.type == 1;
-          });        
-          this.engineDisel = engine.filter(function(item){
-            return item.type != 1;
-          });                         
+          })                    
         }
       },
       selectEngine(id) {
@@ -422,10 +430,10 @@
               }else{
                 app.car = response.data.car;
                 app.engineSpec = response.data.engineSpec;
-                app.extraService = [];
                 response.data.extraService.forEach(function(item){
                   app.extraService.push({'id': item.id, 'name':item.name, 'description':item.description, 'price':item.price, 'checked': false})
                 });
+                // app.extraService = response.data.extraService;
                 app.stage = response.data.stage;
                 app.selectedStage = app.stage[0];
                 app.totalPrice = app.selectedStage.price;
@@ -437,9 +445,10 @@
       selectBrandByName(name) {
           this.model = [];
           this.year = [];
-          this.engineGas = [];
-          this.engineDisel = [];
-          this.modelDestroy();
+          this.motor = [];
+          this.modelSelect = false;
+          this.yearSelect = false;
+          this.engineSelect = false;
           this.searchModel = 'Модель',
           this.searchYear = 'Год',
           this.searchEngine = 'Мотор',
@@ -466,11 +475,7 @@
       },
       selectModelByName(name) {
         if (name) {
-          this.year = [];
-          this.engineGas = [];
-          this.engineDisel = [];          
           this.modelSelect = true;
-          this.yearDestroy();
           this.modelName = name;
           this.modelId = this.model.find(model=>model.name == name).id;
           this.year = this.$store.getters.yearByModelId(this.modelId);
@@ -479,29 +484,16 @@
       selectYearByName(name) {
         if (name) {
           this.yearSelect = true;
-          this.engineDestroy();
           this.yearName = name;
           this.yearId = this.year.find(year=>year.name == name).id;
-          let engine = this.$store.getters.engineByYearId(this.yearId);
-          this.engineGas = engine.filter(function(item){
-            return item.type == 1;
-          });        
-          this.engineDisel = engine.filter(function(item){
-            return item.type != 1;
-          });    
+          this.engine = this.$store.getters.engineByYearId(this.yearId);
         }
       },
       selectEngineByName(name) {
         if (name) {
           this.engineSelect = true;
           this.engineName = name;
-          let engine = this.engineGas.find(engine=>engine.name == name);
-          if(engine){
-              this.engineId = engine.id;
-          }else{
-            engine = this.engineDisel.find(engine=>engine.name == name);
-            this.engineId = engine.id;
-          }
+          this.engineId = this.engine.find(engine=>engine.name == name).id;
           const app = this;
           axios.get('api/carinfo/'+ this.engineId).then(function(response){
               if(response.data == "empty"){
@@ -509,7 +501,6 @@
               }else{
                 app.car = response.data.car;
                 app.engineSpec = response.data.engineSpec;
-                app.extraService = [];
                 response.data.extraService.forEach(function(item){
                   app.extraService.push({'id': item.id, 'name':item.name, 'description':item.description, 'price':item.price, 'checked': false})
                 });
@@ -545,160 +536,40 @@
           this.selectedStage = this.stage.find(stage=>stage.id == stageId);
           this.totalPrice = 0;
           this.totalPrice = this.selectedStage.price + this.totalExtraPrice;
-      },
-      engineDestroy() {
-        this.engineSelect = false;
-        this.engineName = '';
-      },
-      yearDestroy() {
-        this.engineSelect = false;
-        this.yearSelect = false;
-        this.engineName = '';
-        this.yearName = '';
-      },
-      modelDestroy() {
-        this.engineSelect = false;
-        this.yearSelect = false;
-        this.modelSelect = false;
-        this.yearName = '';
-        this.modelName = '';
-        this.engineName = '';
-      },
-      brandDestroy() {
-        this.engineSelect = false;
-        this.yearSelect = false;
-        this.modelSelect = false;
-        this.brandSelect = false;
-        this.modelName = '';
-        this.yearName = '';
-        this.engineName = '';
-        this.brandName = '';
-
       }
+    },
+    components: {
+      Breadcrumbs,
+      AskTuning
     },
     computed: {
       brand() {
         return this.$store.getters.brand;
       }
     },
-    created(){
+    beforeCreate(){
       const app = this;
-      let baseUrl = window.location.protocol+"//"+window.location.host+"/";
-      axios.get( baseUrl + 'api/carinfo/'+ this.engineid).then(function(response){
-          if(response.data == "empty"){
-              app.isExist = false;
-              console.log('error');
-          }else{
-            app.car = response.data.car;
-            app.brandName = response.data.brand.title;
-            app.brandId = response.data.brand.id;
-            app.logoSrc = response.data.brand.logo;
-            app.modelName = response.data.model.name;
-            app.modelId = response.data.model.id;
-            app.yearName = response.data.year.name;
-            app.yearId = response.data.year.id;
-            app.engineName = response.data.engine.name;
-            app.engineId = response.data.engine.id;                                    
-            app.engineSpec = response.data.engineSpec;
-            app.extraService = [];
-            response.data.extraService.forEach(function(item){
-              app.extraService.push({'id': item.id, 'name':item.name/* , 'description':item.description */, 'price':item.price, 'checked': false})
-            });
-            app.stage = response.data.stage;
-            app.selectedStage = app.stage[0];
-            app.totalPrice = app.selectedStage.price;
-            app.isExist = true;
-            console.log(response.data.brand);
-          }
-      }).catch(function(errors){
-        console.log(errors);
-      })      
-    }
+      axios.get('api/chip').then(function(response){
+        app.$store.commit('formatBrand');
+        app.$store.commit('createBrand', response.data.brand);
+        app.$store.commit('formatModel');
+        app.$store.commit('createModel', response.data.model);        
+        app.$store.commit('formatYear');
+        app.$store.commit('createYear', response.data.year);
+        app.$store.commit('formatEngine');
+        app.$store.commit('createEngine', response.data.motor);                
+        app.$store.commit('createCar', response.data.car);                
+        app.$store.commit('createEngineSpec', response.data.motorSpec);                
+        app.$store.commit('createExtraService', response.data.extraService);                
+    })
+    },
+    created(){
+        let body = document.querySelector('body');
+        body.classList.remove('overflow');      
+    }    
   }
 </script>
+
 <style scoped>
-  .title {
-    text-align: center;
-    margin-bottom: 20px;
-  }
-  .breadcrumbs {
-    margin-bottom: 30px;
-    flex-wrap: wrap;
-  }
-  .breadcrumbs li a {
-    color: #000;
-    font-size: 16px;
-    cursor: pointer;
-  }
-  .breadcrumbs li:last-child a {
-    color: #fd5150;
-    cursor: default;
-  }
-  .breadcrumbs li a:hover{
-    text-decoration: underline;
-  }
-  .tuning-grid-wrapper {
-    display: grid;
-    grid-gap: 20px;
-    grid-template-columns: repeat(3, 1fr);
-  }
-  @media only screen and (max-width: 767px) {
-    .tuning-grid-wrapper {
-      display: flex;
-      flex-wrap: wrap;
-    }
-  }
-  .tuning-grid-wrapper .col-select-box {
-    border: 1px solid #c3c3c3;
-    border-radius: 3px;
-    box-shadow: 1px 1px 6px rgba(0, 0, 0, 0.4);
-  }
-  @media only screen and (max-width: 767px) {
-    .tuning-grid-wrapper .col-select-box {
-      width: 100%;
-      margin-bottom: 15px;
-    }
-  }
-  .tuning-grid-wrapper .col-select-box-header {
-    padding: 0 10px 0 20px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    border-bottom: 1px solid #c3c3c3;
-  }
-  @media only screen and (max-width: 767px) {
-    .tuning-grid-wrapper .col-select-box-header {
-      padding: 0 15px;
-    }
-  }
-  .tuning-grid-wrapper .col-select-box-header img {
-    max-width: 80px;
-  }
-  @media only screen and (max-width: 767px) {
-    .tuning-grid-wrapper .col-select-box-header h3 {
-      font-size: 14px;
-    }
-  }
-  .tuning-grid-wrapper .col-select-box-header span {
-    color: #69696a;
-  }
-  .tuning-grid-wrapper .col-select-box .items {
-    padding: 10px;
-    background: #d7d7d7;
-  }
-  .tuning-grid-wrapper .col-select-box .items li {
-    padding: 10px;
-    font-size: 14px;
-    cursor: pointer;
-    border-bottom: 1px solid #fff;
-    color: #000;
-  }
-  @media only screen and (max-width: 767px) {
-    .tuning-grid-wrapper .col-select-box .items li {
-      font-size: 14px;
-    }
-  }
-  .tuning-grid-wrapper .col-select-box .items li:last-child {
-    border: none;
-  }
+
 </style>

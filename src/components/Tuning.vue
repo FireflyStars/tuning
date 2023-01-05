@@ -1,19 +1,24 @@
 <template>
-  <div>
-    <app-header></app-header>
     <div class="content-app pt0">
       <div class="container">
         <div class="tuning-container">
           <ul class="breadcrumbs">
             <li><router-link to="/">Главная</router-link></li>
-            <li v-if="brandName">
-              <span>{{ brandName }}</span>
+            <li
+              @click="brandDestroy">
+              <a>{{link}}</a>
             </li>
-            <li v-if="modelName">
-              <span>{{modelName}}</span>
+            <li v-if="brandName"
+                @click="modelDestroy">
+              <a>{{brandName}}</a>
             </li>
-            <li v-if="yearName">
-              <span>{{yearName}}</span>
+            <li v-if="modelName"
+                @click="yearDestroy">
+              <a>{{modelName}}</a>
+            </li>
+            <li v-if="yearName"
+                @click="engineDestroy">
+              <a>{{yearName}}</a>
             </li>
             <li v-if="engineName">
               <span>{{engineName}}</span>
@@ -21,9 +26,6 @@
           </ul>
           <div class="tuning-wrapper" v-if="engineSelect && isExist">
             <div class="content">
-              <div class="tuning-stage">
-                <div class="ttl">{{ brandName }}&nbsp;{{ modelName }}&nbsp;{{ yearName }}&nbsp;{{ engineName }}</div>
-              </div>
               <div class="tuning-stage">
                 <div class="ttl">Стадия тюнинга:</div>
                   <div class="btn transform" style="cursor:pointer" v-for="item in stage" :key="item.stage" :class="{active: (item.stage == selectedStage.stage)}" @click="selectStage(item.id)"><span @click="selectStage(item.id)">Stage {{ item.stage }}</span></div>
@@ -70,22 +72,15 @@
                       {{ selectedStage.moment - car.moment }} нм
                     </div>
                   </div>
-                </div>               
-              </div>
-              <div class="table-wrap1">
-                <div class="ttl" style="font-weight:700;">Спецификации мотора:</div>
-                <div class="table">
-                  <div class="tbody">
-                    <div class="tr" v-for="(item, index) in engineSpec" :key="index">
-                      <div class="td" v-html="item.name">Снятие ограничения скорости</div>
-                      <div class="td" v-html="item.value">Бесплатно</div>
-                    </div>
-                  </div>
                 </div>
-              </div>              
+              </div>
               <div class="tuning-options">
                 <div class="tuning-options-btn"
                      @click="showOptions = !showOptions">Дополнительные опции
+                </div>
+              </div>
+              <div class="total-wrap">
+                <div class="tuning-total">
                 </div>
               </div>
               <div class="table-wrap" v-if="showOptions">
@@ -139,12 +134,12 @@
               <div class="tuning-logo">
                 <img :src="logoSrc" alt="">
               </div>
-              <!-- <div class="aside-text">
+              <div class="aside-text">
                 <ul class="tuning-list">
                   <li>Спецификация мотора:</li>
                   <li v-for="(item, index) in engineSpec" :key="index">{{item.name}} : {{ item.value }}</li>
                 </ul>
-              </div> -->
+              </div>
             </aside>
           </div>
           <div class="tuning-wrapper" v-if="engineSelect && !isExist">
@@ -155,23 +150,21 @@
         </div>
       </div>
     </div>
-    <ask-tuning></ask-tuning>
-    <app-footer></app-footer>
-  </div>
 </template>
 
 <script>
-  import AskTuning from '@/components/Ask-tuning'
   import axios from 'axios';
-
+  import router from '../router'
   export default {
     props: ['engineid'],
-    components: {
-      AskTuning,
-    },
     data() {
       return {
+        link: 'Чип Тюнинг',      
+        brandSelect: true,
+        modelSelect: true,
+        yearSelect: true,
         engineSelect: true,
+        carDetails: true,
         showOptions: false,
         brandId: 0,
         modelId: 0,
@@ -583,39 +576,27 @@
     },
     created(){
       const app = this;
-      let baseUrl = window.location.protocol+"//"+window.location.host+"/";
-      axios.get( baseUrl + 'api/carinfo/'+ this.engineid).then(function(response){
+      axios.get('api/carinfo/'+ this.engineId).then(function(response){
           if(response.data == "empty"){
               app.isExist = false;
-              console.log('error');
           }else{
             app.car = response.data.car;
-            app.brandName = response.data.brand.title;
-            app.brandId = response.data.brand.id;
-            app.logoSrc = response.data.brand.logo;
-            app.modelName = response.data.model.name;
-            app.modelId = response.data.model.id;
-            app.yearName = response.data.year.name;
-            app.yearId = response.data.year.id;
-            app.engineName = response.data.engine.name;
-            app.engineId = response.data.engine.id;                                    
             app.engineSpec = response.data.engineSpec;
             app.extraService = [];
             response.data.extraService.forEach(function(item){
-              app.extraService.push({'id': item.id, 'name':item.name/* , 'description':item.description */, 'price':item.price, 'checked': false})
+              app.extraService.push({'id': item.id, 'name':item.name, 'description':item.description, 'price':item.price, 'checked': false})
             });
             app.stage = response.data.stage;
             app.selectedStage = app.stage[0];
             app.totalPrice = app.selectedStage.price;
             app.isExist = true;
-            console.log(response.data.brand);
           }
-      }).catch(function(errors){
-        console.log(errors);
       })      
+      console.log(this.$route.params.engineid);
     }
   }
 </script>
+
 <style scoped>
   .title {
     text-align: center;

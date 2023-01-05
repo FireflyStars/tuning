@@ -1,16 +1,8 @@
 <template>
-  <div>
-  <section class="section text-center">
-    <div class="container">
-      <h3>У вас есть вопрос? <br/>
-      Напишите нам и наши специалисты ответят вам в ближайшее время.</h3>
-      <div class="btn" @click="show"><span class="black">Написать</span></div>
-    </div>
-  </section>
-  <section class="section text-center" style="padding-top:0" v-if="isShow">
+  <section class="section text-center" style="padding-top:0">
     <div class="container custom-container">
         <div class="row">
-        <input type="text" placeholder="ИМЯ *" style="margin-right:0" id="name" name="name" :class="isName ? 'invalid': ''" v-model="customerName" />
+        <input type="text" placeholder="НАЗВАНИЕ *" style="margin-right:0" id="name" name="name" :class="isName ? 'invalid': ''" v-model="customerName" />
         </div>
         <div class="row">
         <div class="col col-custom">
@@ -29,7 +21,6 @@
         </div>                                                                              
     </div>  
   </section>
-  </div>
 </template>
 
 <script>
@@ -38,7 +29,6 @@ import axios from 'axios'
   export default {
     data() {
         return {
-        isShow: false,
         isOrder: false,
         customerName: '',
         customerPhone: '',
@@ -51,36 +41,6 @@ import axios from 'axios'
       }
     },
     methods:{
-      show(){
-        this.isOrder = true;
-        this.isShow = true;
-      },
-      modalClose(){
-        let body = document.querySelector('body');
-        body.classList.remove('overflow');
-        this.isName = false;
-        this.isPhone = false;
-        this.isEmail = false;
-        this.isMessage = false;
-        this.customerName = '';
-        this.customerPhone = '';
-        this.customerEmail = '';
-        this.customerMessage = '';
-        this.isOrder = false;
-      },      
-      cancel(){
-        let body = document.querySelector('body');
-        body.classList.remove('overflow');
-        this.isName = false;
-        this.isPhone = false;
-        this.isEmail = false;
-        this.isMessage = false;
-        this.customerName = '';
-        this.customerPhone = '';
-        this.customerEmail = '';
-        this.customerMessage = '';        
-        this.isOrder = false;
-      },
       orderTo(){
         this.isName = false;
         this.isPhone = false;
@@ -118,16 +78,15 @@ import axios from 'axios'
           this.customerPhone = '';
           this.customerEmail = '';
           this.customerMessage = '';                    
-          this.isOrder = false;                
+          this.isOrder = false;       
+          let body = document.querySelector('body');
+          body.classList.remove('overflow');           
       }         
     }
   }
 </script>
 
 <style scoped>
-h3 {
-  margin-bottom: 20px;
-}
  input{
    width: 100%;
    height: 40px;

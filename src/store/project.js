@@ -1,49 +1,40 @@
 class Project {
-  constructor (title, descr, imageScr = '', id = null) {
-    this.title = title
-    this.descr = descr
-    this.imageSrc = imageScr
-    this.id = id
-  }
+    constructor(name, description, image = '', id = null, type) {
+        this.name = name
+        this.description = description
+        this.image = image
+        this.id = id
+        this.type = 0;
+    }
 }
 
 export default {
-  state: {
-    project: [
-      {
-        id: '1',
-        imageSrc: 'https://images.unsplash.com/photo-1523676060187-f55189a71f5e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9',
-        title: 'Проект 1',
-        descr: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam varius ornare pretium. Cras velsapien et purus efficitur interdu'
-      },
-      {
-        id: '2',
-        imageSrc: 'https://images.unsplash.com/photo-1523676060187-f55189a71f5e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9',
-        title: 'Проект 2',
-        descr: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam varius ornare pretium. Cras velsapien et purus efficitur interdu'
-      },
-      {
-        id: '3',
-        imageSrc: 'https://images.unsplash.com/photo-1523676060187-f55189a71f5e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9',
-        title: 'Проект 3',
-        descr: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam varius ornare pretium. Cras velsapien et purus efficitur interdu'
-      }
-    ]
-  },
-  mutations: {
-    createProject (state, payload) {
-      state.project.push(payload)
-    }
-  },
-  actions: {},
-  getters: {
-    project (state) {
-      return state.project
+    state: {
+        project: [{
+            id: '1',
+            type: 0,
+            image: '',
+            name: '',
+            description: '<span>На прошлой неделе в работе была BMW M4 F82, </span>задача была установить диффузор RKP, пружины KW на стоковые амортизаторы с возможностью регулировки, впуск Dinan, радиатор C&amp;R и дополнить все это прошивкой Stage 1, изначально планировали увидеть цифры в районе 530 лс и 680, +-, но все оказалось куда интереснее. Но обо всем по порядку:<div><br><div><span style="caret-color: rgb(0, 0, 0);">&nbsp;Для начала установили диффузор RPK:</span><br></div></div>'
+        }]
     },
-    projectById (state) {
-      return projectId => {
-        return state.project.find(project => project.id === projectId)
-      }
+    mutations: {
+        createProject(state, payload) {
+            state.project = payload;
+        },
+        formatProject(state) {
+            state.project = [];
+        }
+    },
+    actions: {},
+    getters: {
+        project(state) {
+            return state.project
+        },
+        projectById(state) {
+            return projectId => {
+                return state.project.find(project => project.id == projectId)
+            }
+        }
     }
-  }
 }
